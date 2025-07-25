@@ -62,6 +62,14 @@ function eval(sexp) {
   }
 
   if (car(sexp) == "lambda") {
+      varlist = car(cdr(sexp))
+      body = car(cdr(cdr(sexp)))
+
+      if (body ~ /^[(]let/) {
+        let_varlist = car(cdr(body))
+        let_body = car(cdr(cdr(body)))
+      }
+
       return sexp
   }
 
@@ -71,6 +79,60 @@ function eval(sexp) {
       args = cdr(sexp)
 
       return eval(apply(lambda_args, lambda_expr, args))
+  }
+
+  if (car(sexp) == "let") {
+      varlist = car(cdr(sexp))
+      body = car(cdr(cdr(sexp)))
+
+      if (body ~ /^[(]let/) {
+        inner_varlist = car(cdr(body))
+        inner_body = car(cdr(cdr(body)))
+
+        outer_varlist = remove_parens_varlist(varlist)
+        olen = split(outer_varlist, o)
+
+        inner_varlist = remove_parens_varlist(inner_varlist)
+        len = split(inner_varlist, v)
+
+        for (r = 1; r <= olen; r = r + 2) {
+          for (i = 1; i <= len; i = i + 2) {
+              if (o[r] == v[i]) {
+                  o[r + 1] = v[i + 1]
+              }
+          }
+        }
+
+        for (i = 1; i <= len; i = i + 2) {
+          for (r = 1; r <= olen; r = r + 2) {
+              if (v[i] == o[r]) {
+                  v[i + 1] = o[r + 1]
+              }
+          }
+        }
+
+        for (i = 1; i <= len; i = i + 2) {
+            gsub(v[i], v[i+1], body)
+        }
+
+        for (i = 1; i <= len; i = i + 2) {
+            gsub(o[i], o[i+1], body)
+        }
+
+        return eval(body)
+      }
+
+      if (body ~ /^[(]lambda/) {
+      }
+
+      varlist = remove_parens_varlist(varlist)
+      len = split(varlist, v)
+
+      for (i = 1; i <= len; i = i + 2) {
+          gsub(v[i], v[i+1], body)
+      }
+
+      return eval(body)
   }
 
   if (car(sexp) == "+") {
@@ -292,6 +354,7 @@ function division(l) {
 #
 
 function tokenize(l) {
+  gsub(/^'[(]/, "(", l) # unquote a quoted list
   gsub(/^[(]/, "(\n", l)
   gsub(/[)]$/, "\n)", l)
   gsub(/\s+/, "\n", l)
@@ -327,7 +390,18 @@ function add_outer_parens(l) {
   return "(" l ")"
 }
 
+function remove_parens_varlist(varlist) {
+    gsub(/'/, "", varlist)
+    gsub(/[(]/, "", varlist)
+    gsub(/[)]/, "", varlist)
+
+    return varlist
+}
+
 function remove_outer_parens(l) {
   return substr(l, 2, length(l)-2)
 }
 
+function parse_var_list(varlist) {
+    return varlist
+}

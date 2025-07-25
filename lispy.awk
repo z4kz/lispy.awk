@@ -57,7 +57,7 @@ function eval(sexp) {
 
   if (car(sexp) == "define") {
      name = unquote(car(cdr(sexp)))
-     if (!quotedq(cdr(cdr(sexp)))) { return names[name] = eval(remove_outer_parens(cdr(cdr(sexp)))) }
+     if (!quotedq(cdr(cdr(sexp)))) { return names[name] = eval(unquote(remove_outer_parens(cdr(cdr(sexp))))) }
      return names[name] = remove_outer_parens(cdr(cdr(sexp)))
   }
 

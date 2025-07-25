@@ -61,7 +61,7 @@ function eval(sexp) {
      return names[name] = remove_outer_parens(cdr(cdr(sexp)))
   }
 
-  if (car(sexp) == "lambda") {
+  if (sexp ~ /^[(]lambda/) {
       varlist = car(cdr(sexp))
       body = car(cdr(cdr(sexp)))
 
@@ -73,12 +73,10 @@ function eval(sexp) {
       return sexp
   }
 
-  if (car(car(sexp)) == "lambda") {
-      lambda_args = car(cdr(car(sexp)))
-      lambda_expr = car(cdr(cdr(car(sexp))))
+  if (sexp ~ /^[(][(]lambda/) {
+      lambda = eval(car(sexp))
       args = cdr(sexp)
-
-      return eval(apply(lambda_args, lambda_expr, args))
+      return eval(apply(lambda, args))
   }
 
   if (car(sexp) == "let") {
@@ -89,10 +87,10 @@ function eval(sexp) {
         inner_varlist = car(cdr(body))
         inner_body = car(cdr(cdr(body)))
 
-        outer_varlist = remove_parens_varlist(varlist)
+        outer_varlist = remove_parens(varlist)
         olen = split(outer_varlist, o)
 
-        inner_varlist = remove_parens_varlist(inner_varlist)
+        inner_varlist = remove_parens(inner_varlist)
         len = split(inner_varlist, v)
 
         for (r = 1; r <= olen; r = r + 2) {
@@ -115,7 +113,7 @@ function eval(sexp) {
             gsub(v[i], v[i+1], body)
         }
 
-        for (i = 1; i <= len; i = i + 2) {
+        for (i = 1; i <= olen; i = i + 2) {
             gsub(o[i], o[i+1], body)
         }
 
@@ -123,9 +121,20 @@ function eval(sexp) {
       }
 
       if (body ~ /^[(]lambda/) {
+          inner_body = car(cdr(cdr(body)))
+
+          outer_varlist = remove_parens(varlist)
+          olen = split(outer_varlist, v)
+
+          new_inner_body
+          for (i = 1; i <= olen; i = i + 2) {
+              gsub(v[i], v[i+1], inner_body)
+          }
+
+          return body
       }
 
-      varlist = remove_parens_varlist(varlist)
+      varlist = remove_parens(varlist)
       len = split(varlist, v)
 
       for (i = 1; i <= len; i = i + 2) {
@@ -157,12 +166,8 @@ function eval(sexp) {
 
   if (atomq(car(sexp))) { 
       lambda = eval(car(sexp))
-
-      lambda_args = car(cdr(lambda))
-      lambda_expr = car(cdr(cdr(lambda)))
-      args = eval_args(cdr(sexp))
-
-      return eval(apply(lambda_args, lambda_expr, args))
+      args = cdr(sexp)
+      return eval(apply(lambda, args))
   }
 
   if (quotedq(sexp)) { return unquote(sexp) }
@@ -178,19 +183,45 @@ function eval_args(l) {
     }
 }
 
-function apply(lambda_args, lambda_expr, args) { # TODO
-    lambda_argst = tokenize(remove_outer_parens(lambda_args))
-    argst = tokenize(remove_outer_parens(args))
+function apply(lambda, args) {
+    vars = car(cdr(lambda))
+    body = car(cdr(cdr(lambda)))
 
-    lambdalen = split(lambda_argst, la, ",")
-    argslen = split(argst, aa, ",")
+    vars = remove_parens(vars)
+    args = tokenize(args)
 
-    for (i = 0; i <= lambdalen; ++i) {
-        gsub(la[i], aa[i], lambda_expr)
+    vlen = split(vars, v)
+    alen = split(args, a, ",")
+
+    for (i = 1; i <= vlen; ++i) {
+        gsub(v[i], a[i+1], body)
     }
 
-    return lambda_expr
+    return eval(body)
+
+    if (body ~ /^[(]let/) {
+    }
+
+    if (body ~ /^[(][(]lambda/) {
+    }
+
+
 }
+
+# orig apply()
+#function apply(lambda_args, lambda_expr, args) { # TODO
+#    lambda_argst = tokenize(remove_outer_parens(lambda_args))
+#    argst = tokenize(remove_outer_parens(args))
+#
+#    lambdalen = split(lambda_argst, la, ",")
+#    argslen = split(argst, aa, ",")
+#
+#    for (i = 0; i <= lambdalen; ++i) {
+#        gsub(la[i], aa[i], lambda_expr)
+#    }
+#
+#    return lambda_expr
+#}
 
 #
 # lispy functions
@@ -390,7 +421,7 @@ function add_outer_parens(l) {
   return "(" l ")"
 }
 
-function remove_parens_varlist(varlist) {
+function remove_parens(varlist) {
     gsub(/'/, "", varlist)
     gsub(/[(]/, "", varlist)
     gsub(/[)]/, "", varlist)

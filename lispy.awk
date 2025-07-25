@@ -208,21 +208,6 @@ function apply(lambda, args) {
 
 }
 
-# orig apply()
-#function apply(lambda_args, lambda_expr, args) { # TODO
-#    lambda_argst = tokenize(remove_outer_parens(lambda_args))
-#    argst = tokenize(remove_outer_parens(args))
-#
-#    lambdalen = split(lambda_argst, la, ",")
-#    argslen = split(argst, aa, ",")
-#
-#    for (i = 0; i <= lambdalen; ++i) {
-#        gsub(la[i], aa[i], lambda_expr)
-#    }
-#
-#    return lambda_expr
-#}
-
 #
 # lispy functions
 #

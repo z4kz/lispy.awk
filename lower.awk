@@ -78,18 +78,3 @@ function tokenize_varlist(varlist) {
 
     return result
 }
-
-#function tokenize_varlist(varlist) {
-#    varlist = tokenize(varlist)
-#
-#    gsub(/^[(],/, ",", varlist)
-#    gsub(/,[)]$/, ",", varlist)
-#    gsub(/,[(]/, ", ", varlist)
-#    gsub(/[)],/, " ", varlist)
-#    gsub(/,/, "", varlist)
-#    gsub(/^\s+/, "", varlist)
-#    gsub(/^\s$/, "", varlist)
-#    gsub(/\s+/, ",", varlist)
-#
-#    return varlist
-#}

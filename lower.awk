@@ -66,14 +66,30 @@ function remove_outer_parens(l) {
 function tokenize_varlist(varlist) {
     varlist = tokenize(varlist)
 
-    gsub(/^[(],/, ",", varlist)
-    gsub(/,[)]$/, ",", varlist)
-    gsub(/,[(]/, ", ", varlist)
-    gsub(/[)],/, " ", varlist)
-    gsub(/,/, "", varlist)
-    gsub(/^\s+/, "", varlist)
-    gsub(/^\s$/, "", varlist)
-    gsub(/\s+/, ",", varlist)
+    len = split(varlist, v, ",")
 
-    return varlist
+    result = ""
+    for (i = 2; i <= len-1; ++i) {
+        result = result "," tokenize(v[i])
+    }
+
+    gsub(/^,[(],/, "", result)
+    gsub(/,[)]$/, "", result)
+
+    return result
 }
+
+#function tokenize_varlist(varlist) {
+#    varlist = tokenize(varlist)
+#
+#    gsub(/^[(],/, ",", varlist)
+#    gsub(/,[)]$/, ",", varlist)
+#    gsub(/,[(]/, ", ", varlist)
+#    gsub(/[)],/, " ", varlist)
+#    gsub(/,/, "", varlist)
+#    gsub(/^\s+/, "", varlist)
+#    gsub(/^\s$/, "", varlist)
+#    gsub(/\s+/, ",", varlist)
+#
+#    return varlist
+#}

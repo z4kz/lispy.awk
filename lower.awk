@@ -2,29 +2,41 @@
 # lower functions
 #
 
-function tokenize(l) {
-  gsub(/^'[(]/, "(", l) # unquote a quoted list
-  gsub(/^[(]/, "(\n", l)
-  gsub(/[)]$/, "\n)", l)
-  gsub(/\s+/, "\n", l)
-  gsub(/\n/, ",", l)
+#
+# tokenize(sexp)
+#
+# input: sexp: a syntactically valid symbolic expression
+# returns: a tokenized version of a symbolic expression
+#
+function tokenize(sexp) {
+  gsub(/^\s*/, "", sexp) # remove leading space
+  gsub(/\s*$/, "", sexp) # remove trailing space
+  gsub(/\n/, " ", sexp) # make \n to be a single space
+  gsub(/^'[(]/, "(", sexp) # remove leading quote mark if it's a quoted list
+  if (sexp ~ /^[(]quote [(]/) { gsub(/^[(]quote [(]/, "(", sexp); gsub (/[)]$/, "", sexp) } # remove leading 'quote' and trailing paren if it's a quoted list.
 
-  len = split(l, a, "")
+  gsub(/^[(]/, "(\n", sexp)
+  gsub(/[)]$/, "\n)", sexp)
+  gsub(/\s+/, "\n", sexp)
+
+  gsub(/\n/, ",", sexp)
+
+  len = split(sexp, ch, "")
 
   nested = 0
   for (i = 1; i <= len; ++i) {
-    if (a[i] ~ /[(]/) { ++nested }
-    if (a[i] ~ /[)]/) { --nested }
+    if (ch[i] ~ /[(]/) { ++nested }
+    if (ch[i] ~ /[)]/) { --nested }
 
-    if (a[i] ~ /,/ && nested > 1) { a[i] = " " }
+    if (ch[i] ~ /,/ && nested > 1) { ch[i] = " " }
   }
 
-  string = ""
+  result = ""
   for (i = 1; i <= len; ++i) {
-    string = string a[i]
+    result = result ch[i]
   }
 
-  return string
+  return result
 }
 
 function detokenize(t) {
@@ -51,6 +63,17 @@ function remove_outer_parens(l) {
   return substr(l, 2, length(l)-2)
 }
 
-function parse_var_list(varlist) {
+function tokenize_varlist(varlist) {
+    varlist = tokenize(varlist)
+
+    gsub(/^[(],/, ",", varlist)
+    gsub(/,[)]$/, ",", varlist)
+    gsub(/,[(]/, ", ", varlist)
+    gsub(/[)],/, " ", varlist)
+    gsub(/,/, "", varlist)
+    gsub(/^\s+/, "", varlist)
+    gsub(/^\s$/, "", varlist)
+    gsub(/\s+/, ",", varlist)
+
     return varlist
 }

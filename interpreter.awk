@@ -28,174 +28,142 @@ function eval(sexp) {
   names[""]
 
   if (atomq(sexp)) {
-    if (quotedq(sexp)) { sexp = unquote(sexp) }
-    if (names[sexp]) { return names[sexp] }
-    return sexp
-  }
-
-  if (car(sexp) == "car") {
-    if (quotedq(car(cdr(sexp)))) { return car(unquote(car(cdr(sexp)))) }
-    return car(eval(car(cdr(sexp))))
-  }
-
-  if (car(sexp) == "cdr") {
-    if (quotedq(car(cdr(sexp)))) { return cdr(unquote(car(cdr(sexp)))) }
-    return cdr(eval(car(cdr(sexp))))
-  }
-
-  if (car(sexp) == "cons") {
-    return cons(eval(car(cdr(sexp))), eval(remove_outer_parens(cdr(unquote(cdr(sexp))))))
-  }
-
-  if (car(sexp) == "define") {
-     name = unquote(car(cdr(sexp)))
-     if (!quotedq(cdr(cdr(sexp)))) { return names[name] = eval(unquote(remove_outer_parens(cdr(cdr(sexp))))) }
-     return names[name] = remove_outer_parens(cdr(cdr(sexp)))
-  }
-
-  if (sexp ~ /^[(]lambda/) {
-      varlist = car(cdr(sexp))
-      body = car(cdr(cdr(sexp)))
-
-      if (body ~ /^[(]let/) {
-        let_varlist = car(cdr(body))
-        let_body = car(cdr(cdr(body)))
-      }
+      if (quotedq(sexp)) { return sexp }
+      if (names[sexp]) { return names[sexp] }
 
       return sexp
   }
 
-  if (sexp ~ /^[(][(]lambda/) {
-      lambda = eval(car(sexp))
-      args = cdr(sexp)
-      return eval(apply(lambda, args))
+  if (sexp ~ /^[(]define/) {
+      name = car(cdr(sexp))
+      value = car(cdr(cdr(sexp)))
+
+      names[name] = value
+
+      return value
   }
 
-  if (car(sexp) == "let") {
-      varlist = car(cdr(sexp))
-      body = car(cdr(cdr(sexp)))
+  if (sexp ~ /^[(]lambda\s[(]/) {
+    return sexp
+  }
 
-      if (body ~ /^[(]let/) {
-        inner_varlist = car(cdr(body))
-        inner_body = car(cdr(cdr(body)))
+  if (sexp ~ /^[(]let\s[(]/) {
+     varlist = car(cdr(sexp))
+     body = car(cdr(cdr(sexp)))
 
-        outer_varlist = remove_parens(varlist)
-        olen = split(outer_varlist, o)
+     return let(varlist, body)
+  }
 
-        inner_varlist = remove_parens(inner_varlist)
-        len = split(inner_varlist, v)
+  op = car(sexp)
+  args = cdr(sexp)
+  return apply(op, args)
+}
 
-        for (r = 1; r <= olen; r = r + 2) {
-          for (i = 1; i <= len; i = i + 2) {
-              if (o[r] == v[i]) {
-                  o[r + 1] = v[i + 1]
-              }
-          }
-        }
+function apply(op, args) {
 
-        for (i = 1; i <= len; i = i + 2) {
-          for (r = 1; r <= olen; r = r + 2) {
-              if (v[i] == o[r]) {
-                  v[i + 1] = o[r + 1]
-              }
-          }
-        }
+    if (op == "+") {
+        args = eval_args(args)
 
-        for (i = 1; i <= len; i = i + 2) {
-            gsub(v[i], v[i+1], body)
-        }
+        return sum(args)
+    }
 
-        for (i = 1; i <= olen; i = i + 2) {
-            gsub(o[i], o[i+1], body)
-        }
+    if (op == "-") {
+        args = eval_args(args)
 
-        return eval(body)
-      }
+        return difference(args)
+    }
 
-      if (body ~ /^[(]lambda/) {
-          inner_body = car(cdr(cdr(body)))
+    if (op == "*") {
+        args = eval_args(args)
 
-          outer_varlist = remove_parens(varlist)
-          olen = split(outer_varlist, v)
+        return product(args)
+    }
 
-          new_inner_body
-          for (i = 1; i <= olen; i = i + 2) {
-              gsub(v[i], v[i+1], inner_body)
-          }
+    if (op == "/") {
+        args = eval_args(args)
 
-          return body
-      }
+        return division(args)
+    }
 
-      varlist = remove_parens(varlist)
-      len = split(varlist, v)
+    if (op == "cons") {
+        a = car(args)
+        list = cdr(args)
 
-      for (i = 1; i <= len; i = i + 2) {
-          gsub(v[i], v[i+1], body)
-      }
+        return cons(a, list)
+    }
+
+    if (op == "car") {
+        return car(args)
+    }
+
+    if (op == "cdr") {
+        return cdr(args)
+    }
+
+    if (op ~ /^[(]lambda/) {
+        return lambda(op, eval_args(args))
+    }
+
+    return sexp 
+}
+
+function define(name, sexp) {
+    if (quotedq(sexp)) { names[name] = sexp }
+}
+
+function let(varlist, body) {
+
+    if (body ~ /^[(]let/) {
+      body_varlist = car(cdr(body))
+      body = "(let " cons(remove_outer_parens(body_varlist), varlist) " " car(cdr(cdr(body))) ")"
 
       return eval(body)
-  }
+   }
 
-  if (car(sexp) == "+") {
-      sexp = eval_args(cdr(sexp))
-      return sum(sexp)
-  }
+   if (body ~ /^[(]lambda/) {
+       lambda_body = cdr(cdr(body))
 
-  if (car(sexp) == "-") {
-      sexp = eval_args(cdr(sexp))
-      return difference(sexp)
-  }
+       t_varlist = tokenize_varlist(varlist)
 
-  if (car(sexp) == "*") {
-      sexp = eval_args(cdr(sexp))
-      return product(sexp)
-  }
+       vlen = split(t_varlist, v, /,/)
 
-  if (car(sexp) == "/") {
-      sexp = eval_args(cdr(sexp))
-      return division(sexp)
-  }
+       for (i = 1; i <= vlen; i = i +2) {
+         gsub(v[i], v[i+1], lambda_body)
+       }
 
-  if (atomq(car(sexp))) { 
-      lambda = eval(car(sexp))
-      args = cdr(sexp)
-      return eval(apply(lambda, args))
-  }
+       body = "(lambda " car(cdr(body)) lambda_body ")"
 
-  if (quotedq(sexp)) { return unquote(sexp) }
+       return eval(body)
+   }
 
-  return "#f"
+   t_varlist = tokenize_varlist(varlist)
+
+   vlen = split(t_varlist, v, /,/)
+
+   for (i = 1; i <= vlen; i = i +2) {
+       gsub(v[i], v[i+1], body)
+   }
+
+   return eval(body)
 }
 
-function eval_args(l) {
-    if (nilq(l)) {
-      return "()"
-    } else {
-      return  cons(eval(car(l)), eval_args(cdr(l)))
-    }
-}
+function lambda(lambda_expr, args) {
+    varlist = car(cdr(lambda_expr))
+    body = car(cdr(cdr(lambda_expr)))
 
-function apply(lambda, args) {
-    vars = car(cdr(lambda))
-    body = car(cdr(cdr(lambda)))
-
-    vars = remove_parens(vars)
-    args = tokenize(args)
-
-    vlen = split(vars, v)
-    alen = split(args, a, ",")
-
-    for (i = 1; i <= vlen; ++i) {
-        gsub(v[i], a[i+1], body)
+    vars = varlist
+    for (i = 1; i <= listlen(varlist); ++i) {
+        gsub(car(vars), car(args), body)
+        vars = cdr(vars)
+        args = cdr(args)
     }
 
     return eval(body)
-
-    if (body ~ /^[(]let/) {
-    }
-
-    if (body ~ /^[(][(]lambda/) {
-    }
-
-
 }
+
+function eval_args(list) {
+    if (nilq(list)) { return "()" }
+
+    return cons(eval(car(list)), eval_args(cdr(list)))
+}
+

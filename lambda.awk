@@ -45,6 +45,23 @@ function cons(a, l) {
   return string = "(" string ")"
 }
 
+function eq(atom1, atom2) {
+    if (atom1 == atom2) { return 1 }
+
+    return 0
+}
+
+function listeq(list1, list2) {
+    list1 = unquote(list1)
+    list2 = unquote(list2)
+
+    l1 = tokenize(list1)
+    l2 = tokenize(list2)
+
+    if (l1 == l2) { return 1 }
+
+    return 0
+}
 
 function atomq(sexp) {
   if (listq(sexp)) { return 0 }
@@ -66,11 +83,10 @@ function latq(l) {
 }
 
 function listq(sexp) {
-  if (substr(sexp, 0, 1) == "(") {
-    if (substr(sexp, length(sexp), 1) == ")") {
-      return 1
-    }
-  }
+  if (sexp ~ /^\s*[(]/) { return 1 }
+  if (sexp ~ /[)]\s*$/) { return 1 }
+
+  return 0
 }
 
 function nilq(l) {
@@ -81,76 +97,23 @@ function nilq(l) {
 }
 
 function quotedq(sexp) {
-  if (substr(sexp, 0, 1) == "'") { return 1 }
+  if (sexp ~ /^\s*'/) { return 1 }
+  if (sexp ~ /^\s*[(]quote\s+[(]/) { return 1 }
+
   return 0
 }
 
 function unquote(sexp) {
-  if (quotedq(sexp)) {
-    sexp = substr(sexp, 2, length(sexp))
-  }
+  gsub(/^\s*'[(]/, "(", sexp)
+  if (sexp ~ /^\s*[(]quote\s+[(]/) { gsub(/^\s*[(]quote\s+[(]/, "(", sexp) }
 
   return sexp
 }
 
-#
-# mathematical primitive functions
-#
+function listlen(list) {
+    l = tokenize(list)
 
-function sum(l) {
-  t = tokenize(remove_outer_parens(l))
+    len = split(l, lista, ",")
 
-  len = split(t, a, ",")
-  
-  result = 0
-  for (i = 1; i <= len; ++i) {
-      result += a[i]
-  }
-
-  return result
+    return len - 2 # -2 is to account for opening and closing outer parens
 }
-
-function difference(l) {
-  t = tokenize(remove_outer_parens(l))
-
-  len = split(t, a, ",")
-  
-
-  result = a[1]
-
-  if (len == 1) { return result * -1 }
-
-  for (i = 2; i <= len; ++i) {
-      result -= a[i]
-  }
-
-  return result
-}
-
-function product(l) {
-  t = tokenize(remove_outer_parens(l))
-
-  len = split(t, a, ",")
-  
-  result = 1
-  for (i = 1; i <= len; ++i) {
-      result *= a[i]
-  }
-
-  return result
-}
-
-function division(l) {
-  t = tokenize(remove_outer_parens(l))
-
-  len = split(t, a, ",")
-
-  result = a[1]
-
-  for (i = 2; i <= len; ++i) {
-      result /= a[i]
-  }
-
-  return result
-}
-

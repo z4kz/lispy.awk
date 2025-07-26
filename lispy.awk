@@ -1,6 +1,7 @@
 # lispy.awk
 
 @include "interpreter.awk"
+@include "math.awk"
 @include "lambda.awk"
 @include "lower.awk"
 

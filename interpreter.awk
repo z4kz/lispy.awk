@@ -104,7 +104,12 @@ function apply(op, args) {
         return lambda(op, eval_args(args))
     }
 
-    return sexp 
+    if (names[op]) {
+        return lambda(names[op], eval_args(args))
+    }
+
+    return sexp
+
 }
 
 function define(name, sexp) {

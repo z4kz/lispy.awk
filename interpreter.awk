@@ -54,6 +54,10 @@ function eval(sexp) {
      return let(varlist, body)
   }
 
+  if (sexp ~ /^[(][(]lambda/) {
+      return apply(car(sexp), cdr(sexp))
+  }
+
   op = car(sexp)
   args = cdr(sexp)
   return apply(op, args)
@@ -117,50 +121,62 @@ function define(name, sexp) {
 }
 
 function let(varlist, body) {
-
     if (body ~ /^[(]let/) {
       body_varlist = car(cdr(body))
-      body = "(let " cons(remove_outer_parens(body_varlist), varlist) " " car(cdr(cdr(body))) ")"
+      let_body = car(cdr(cdr(body)))
+
+      while (! nilq(varlist) ) {
+        match(varlist, /[(]([^()\s])+\s+([^()\s]+)[)]/, a)
+
+        gsub(a[1], a[2], let_body)
+
+        varlist = cdr(varlist)
+      }
+
+      body = "(let " body_varlist " " let_body ")"
 
       return eval(body)
    }
 
-   if (body ~ /^[(]lambda/) {
-       lambda_body = cdr(cdr(body))
+   if (body ~ /^[(][(]lambda/) {
+     lambda_varlist = car(cdr(car(body)))
+     lambda_body = car(cdr(cdr(car(body))))
+     body_args = cdr(body)
 
-       t_varlist = tokenize_varlist(varlist)
+     while (! nilq(varlist) ) {
+       match(varlist, /[(]([^()\s])+\s+([^()\s]+)[)]/, a)
 
-       vlen = split(t_varlist, v, /,/)
+       gsub(a[1], a[2], body_args)
 
-       for (i = 1; i <= vlen; i = i +2) {
-         gsub(v[i], v[i+1], lambda_body)
-       }
+       varlist = cdr(varlist)
+     }
 
-       body = "(lambda " car(cdr(body)) lambda_body ")"
+     body = "((lambda " lambda_varlist " " lambda_body ") " remove_outer_parens(body_args) ")"
 
-       return eval(body)
+     return eval(body)
    }
 
-   t_varlist = tokenize_varlist(varlist)
+   while (! nilq(varlist) ) {
+     match(varlist, /[(]([^()\s])+\s+([^()\s]+)[)]/, a)
 
-   vlen = split(t_varlist, v, /,/)
+     gsub(a[1], a[2], body)
 
-   for (i = 1; i <= vlen; i = i +2) {
-       gsub(v[i], v[i+1], body)
+     varlist = cdr(varlist)
    }
 
    return eval(body)
 }
 
 function lambda(lambda_expr, args) {
-    varlist = car(cdr(lambda_expr))
+    lambda_args = car(cdr(lambda_expr))
+    
     body = car(cdr(cdr(lambda_expr)))
 
-    vars = varlist
-    for (i = 1; i <= listlen(varlist); ++i) {
-        gsub(car(vars), car(args), body)
-        vars = cdr(vars)
+    while (! nilq(args) ) {
+        gsub(car(lambda_args), car(args), body)
+
         args = cdr(args)
+        lambda_args = cdr(lambda_args)
     }
 
     return eval(body)

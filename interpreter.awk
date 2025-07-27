@@ -4,23 +4,27 @@
 
 function read() {
     prompt_char = ">"
-    in_list = 0
-    nested = 0
+
+    printf("%s ", prompt_char)
 
     line = ""
-    printf("%s ", prompt_char)
+    nested = 0
     while (getline x) {
         line = line " " x
 
-        # TODO: fix this to properly count the level of nested parens. currently all closing parens must be on the last line.
-        if (x ~ /^\s*[(]/) { in_list = 1 ; nested = 1 }
-        if (x ~ /[)]\s*$/) { in_list = 0; nested = 0}
+        len = split(x, a, /[(]/)
+        nested += len
 
-        if (in_list == 0 && nested == 0) { break }
+        len = split(x, a, /[)]/)
+        nested -= len
+
+        if (nested == 0) { break }
     }
 
     gsub(/^\s*/, "", line)
     gsub(/\s*$/, "", line)
+    gsub(/\n+/, " ", line)
+
     return line
 }
 

@@ -35,6 +35,18 @@ function eval(sexp) {
   }
 
   if (sexp ~ /^[(]define/) {
+      if (listq(car(cdr(sexp)))) { # if it's the alternate syntax for a lambda define
+          lambda_args = cdr(car(cdr(sexp)))
+          lambda_body = car(cdr(cdr(sexp)))
+
+          name = car(car(cdr(sexp)))
+          value = "(lambda " lambda_args " " lambda_body ")"
+
+          names[name] = value
+
+          return value
+      }
+
       name = car(cdr(sexp))
       value = car(cdr(cdr(sexp)))
 

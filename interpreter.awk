@@ -113,6 +113,36 @@ function apply(op, args) {
         return division(args)
     }
 
+    if (op == "=") {
+        if (car(args) == car(cdr(args))) { return 1 }
+
+        return 0
+    }
+
+    if (op == ">") {
+        if (car(args) > car(cdr(args))) { return 1 }
+
+        return 0
+    }
+
+    if (op == "<") {
+        if (car(args) < car(cdr(args))) { return 1 }
+
+        return 0
+    }
+
+    if (op == ">=") {
+        if (car(args) >= car(cdr(args))) { return 1 }
+
+        return 0
+    }
+
+    if (op == "<=") {
+        if (car(args) <= car(cdr(args))) { return 1 }
+
+        return 0
+    }
+
     if (op == "cons") {
         arg = car(args)
         list = car(cdr(args))

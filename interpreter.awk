@@ -9,7 +9,8 @@ function read() {
 
     line = ""
     nested = 0
-    while (getline x) {
+    eof = ""
+    while (eof = getline x) {
         line = line " " x
 
         len = split(x, a, /[(]/)
@@ -24,6 +25,8 @@ function read() {
     gsub(/^\s*/, "", line)
     gsub(/\s*$/, "", line)
     gsub(/\n+/, " ", line)
+
+    if (eof == 0) { printf("\n"); exit }
 
     return line
 }

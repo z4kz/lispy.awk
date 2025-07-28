@@ -41,6 +41,10 @@ function eval(sexp) {
       return sexp
   }
 
+  if (listq(sexp) && quotedq(sexp)) {
+      return unquote(sexp)
+  }
+
   if (sexp ~ /^[(]define/) {
       if (listq(car(cdr(sexp)))) { # if it's the alternate syntax for a lambda define
           lambda_args = cdr(car(cdr(sexp)))
@@ -109,18 +113,20 @@ function apply(op, args) {
     }
 
     if (op == "cons") {
-        a = car(args)
-        list = cdr(args)
+        arg = car(args)
+        list = car(cdr(args))
 
-        return cons(a, list)
+        return "'" cons(arg, list)
     }
 
     if (op == "car") {
+        args = eval(remove_outer_parens(args))
+
         return car(args)
     }
 
     if (op == "cdr") {
-        return cdr(args)
+        return cdr(remove_outer_parens(args))
     }
 
     if (op ~ /^[(]lambda/) {

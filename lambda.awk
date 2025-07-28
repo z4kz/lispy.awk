@@ -4,6 +4,7 @@
 
 function car(l) {
   l = unquote(l)
+
   t = tokenize(l)
 
   len = split(t, a, ",")
@@ -30,7 +31,7 @@ function cdr(l) {
 }
 
 function cons(a, l) {
-  a = unquote(a)
+  a = unquote(eval(a))
   l = unquote(l)
 
   t = tokenize(l)
@@ -97,14 +98,14 @@ function nilq(l) {
 }
 
 function quotedq(sexp) {
-  if (sexp ~ /^\s*'/) { return 1 }
-  if (sexp ~ /^\s*[(]quote\s+[(]/) { return 1 }
+  if (sexp ~ /^\s*'+/) { return 1 }
+  if (sexp ~ /^\s*([(]quote\s+[(])+/) { return 1 }
 
   return 0
 }
 
 function unquote(sexp) {
-  gsub(/^\s*'[(]/, "(", sexp)
+  gsub(/^\s*'/, "", sexp)
   if (sexp ~ /^\s*[(]quote\s+[(]/) { gsub(/^\s*[(]quote\s+[(]/, "(", sexp) }
 
   return sexp

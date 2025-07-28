@@ -5,7 +5,7 @@
 function read() {
     prompt_char = ">"
 
-    printf("%s ", prompt_char)
+    if (ARGC == 1) { printf("%s ", prompt_char) }
 
     line = ""
     nested = 0

@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-gawk -f lispy.awk
+gawk -f lispy.awk $1

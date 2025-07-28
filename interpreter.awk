@@ -160,6 +160,16 @@ function apply(op, args) {
         return cdr(remove_outer_parens(args))
     }
 
+    if (op == "if") {
+        comparison = eval(car(args))
+        true_body = car(cdr(args))
+        false_body = car(cdr(cdr(args)))
+
+        if (comparison) { return eval(true_body) }
+
+        return eval(false_body)
+    }
+
     if (op ~ /^[(]lambda/) {
         return lambda(op, eval_args(args))
     }

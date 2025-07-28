@@ -28,6 +28,7 @@ function read() {
 
     if (eof == 0) { printf("\n"); exit }
 
+
     return line
 }
 
@@ -55,7 +56,7 @@ function eval(sexp) {
 
           names[name] = value
 
-          return value
+          return ""
       }
 
       name = car(cdr(sexp))
@@ -63,7 +64,7 @@ function eval(sexp) {
 
       names[name] = value
 
-      return value
+      return ""
   }
 
   if (sexp ~ /^[(]lambda\s[(]/) {

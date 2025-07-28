@@ -7,7 +7,9 @@
 
 BEGIN {
     for (;;) {
-      print eval(read())
+      result = eval(read())
+
+      if (result) { printf("%s\n", result) }
     }
 }
 

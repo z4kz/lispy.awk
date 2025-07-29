@@ -22,16 +22,16 @@ BEGIN {
     eval( "(define (factorial n) (if (= n 1) 1 (* n (factorial (- n 1)))))" )
 
     # should be false
-    print assert( eval(" (factorial 1) ") == "-1" )
-    print assert( eval(" (factorial 1) ") == "0" )
-    print assert( eval(" (factorial 1) ") == "8" )
+    print assert( eval( "(factorial 1)" ) == "-1" )
+    print assert( eval( "(factorial 1)" ) == "0" )
+    print assert( eval( "(factorial 1)" ) == "8" )
     
     # should be true
-    print assert( eval(" (factorial 1) ") == "1" )
-    print assert( eval(" (factorial 2) ") == "2" )
-    print assert( eval(" (factorial 3) ") == "6" )
-    print assert( eval(" (factorial 4) ") == "24" )
-    print assert( eval(" (factorial 5) ") == "120" )
+    print assert( eval( "(factorial 1)" ) == "1" )
+    print assert( eval( "(factorial 2)" ) == "2" )
+    print assert( eval( "(factorial 3)" ) == "6" )
+    print assert( eval( "(factorial 4)" ) == "24" )
+    print assert( eval( "(factorial 5)" ) == "120" )
 
     print
 

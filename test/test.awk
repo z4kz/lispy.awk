@@ -32,6 +32,22 @@ BEGIN {
     print assert( eval(" (factorial 3) ") == "6" )
     print assert( eval(" (factorial 4) ") == "24" )
     print assert( eval(" (factorial 5) ") == "120" )
+
+    print
+
+    eval( "(define (fib n) (if (= n 0) 0 (if (= n 1) 1 (+ (fib (- n 1)) (fib (- n 2))))))" )
+
+    print assert( eval( "(fib 8)" ) == 5 )
+
+    print assert( eval( "(fib 0)" ) == 0 )
+    print assert( eval( "(fib 1)" ) == 1 )
+    print assert( eval( "(fib 2)" ) == 1 )
+    print assert( eval( "(fib 3)" ) == 2 )
+    print assert( eval( "(fib 4)" ) == 3 )
+    print assert( eval( "(fib 5)" ) == 5 )
+    print assert( eval( "(fib 6)" ) == 8 )
+    print assert( eval( "(fib 7)" ) == 13 )
+    print assert( eval( "(fib 8)" ) == 21 )
 }
 
 function assert(input) {
